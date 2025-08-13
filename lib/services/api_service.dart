@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:snap2sell/services/shared_prefs_service.dart';
 
 class ApiService {
-  final String devUrl = "http://192.168.10.18:8001";
+  final String devUrl = "https://dzd06nfg-3000.inc1.devtunnels.ms";
   final String prodUrl = "";
   static final String imgUrl = "";
   final bool inDevelopment = true;
@@ -184,14 +184,22 @@ class ApiService {
     }
   }
 
-  Future<void> setToken(String token) async {
-    await SharedPrefsService.set('token', token);
-    debugPrint('💾 Token Saved: $token');
+  Future<void> setToken(String token, {String? key}) async {
+    await SharedPrefsService.set(key ?? 'token', token);
+    debugPrint('💾 ${key ?? "Token"} Saved: $token');
   }
 
-  void _checkTokenExpiry(bool authReq, http.Response response) {
+  void _checkTokenExpiry(bool authReq, http.Response response) async {
     if (response.statusCode == 401 && authReq) {
-      // Get.find<AuthController>().logout();
+      final token = await SharedPrefsService.get('refresh_token');
+      final response = await http.get(
+        Uri.parse("$baseUrl/refresh-token"),
+        headers: <String, String>{'Authorization': 'Bearer $token'},
+      );
+
+      final accessToken = jsonDecode(response.body)['access_token'];
+
+      setToken(accessToken, key: "access_token");
     }
   }
 }
