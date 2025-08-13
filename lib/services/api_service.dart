@@ -55,13 +55,22 @@ class ApiService {
 
         for (var entry in data.entries) {
           if (entry.value is File) {
+            // Single file
             request.files.add(
               await http.MultipartFile.fromPath(
                 entry.key,
                 (entry.value as File).path,
               ),
             );
+          } else if (entry.value is List<File>) {
+            // Multiple files
+            for (var file in entry.value as List<File>) {
+              request.files.add(
+                await http.MultipartFile.fromPath(entry.key, file.path),
+              );
+            }
           } else {
+            // Everything else as a field
             request.fields[entry.key] = jsonEncode(entry.value);
           }
         }
@@ -190,16 +199,6 @@ class ApiService {
   }
 
   void _checkTokenExpiry(bool authReq, http.Response response) async {
-    if (response.statusCode == 401 && authReq) {
-      final token = await SharedPrefsService.get('refresh_token');
-      final response = await http.get(
-        Uri.parse("$baseUrl/refresh-token"),
-        headers: <String, String>{'Authorization': 'Bearer $token'},
-      );
-
-      final accessToken = jsonDecode(response.body)['access_token'];
-
-      setToken(accessToken, key: "access_token");
-    }
+    if (response.statusCode == 401 && authReq) {}
   }
 }

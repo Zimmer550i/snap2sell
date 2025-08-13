@@ -15,7 +15,9 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<File?> images = [];
+  List<File> images = [];
+
+  final detailsCtrl = TextEditingController();
   final _focusNode = FocusNode();
   final ebay = Get.find<EbayController>();
 
@@ -27,7 +29,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // ApiService().setToken("bla bla bla", key: "access_token");
     return Scaffold(
       body: SafeArea(
         child: Align(
@@ -82,27 +83,10 @@ class _HomeState extends State<Home> {
                                   borderRadius: BorderRadiusGeometry.circular(
                                     8,
                                   ),
-                                  child: images[i] != null
-                                      ? Image.file(
-                                          images[i]!,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          padding: EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xffeff3f4),
-                                          ),
-                                          child: FittedBox(
-                                            child: Text(
-                                              "Image ${i + 1}",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Color(0xff003846),
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                  child: Image.file(
+                                    images[i],
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               Positioned(
@@ -221,6 +205,7 @@ class _HomeState extends State<Home> {
                       border: Border.all(color: Color(0xff7e99a0)),
                     ),
                     child: TextField(
+                      controller: detailsCtrl,
                       focusNode: _focusNode,
                       onTapOutside: (_) {
                         _focusNode.unfocus();
@@ -265,20 +250,50 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    height: 56,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Color(0xff003846),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Generate Draft Listing",
-                        style: TextStyle(
-                          fontSize: 26,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
+                  GestureDetector(
+                    onTap: () async {
+                      final message = await ebay.postToEbay(
+                        images,
+                        detailsCtrl.text.trim(),
+                      );
+
+                      if (message == "success") {
+                        Get.snackbar(
+                          "Success",
+                          "Sell post has been posted successfully",
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                        );
+                        images.clear();
+                        detailsCtrl.clear();
+                      } else {
+                        Get.snackbar(
+                          "Failed",
+                          message,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
+                    },
+                    child: Container(
+                      height: 56,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Color(0xff003846),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Obx(
+                        () => Center(
+                          child: ebay.isLoading.value
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : Text(
+                                  "Generate Draft Listing",
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -305,12 +320,19 @@ class _HomeState extends State<Home> {
       final data = jsonDecode(body);
 
       if (data["access_token"] != null) {
-        ApiService().setToken(data['access_token'], key: "access_token");
+        ApiService().setToken(data['access_token']);
       }
       if (data["refresh_token"] != null) {
         ApiService().setToken(data['refresh_token'], key: "refresh_token");
       }
     }
-    ebay.checkPrevLogin();
+    if (await ebay.checkPrevLogin()) {
+      Get.snackbar(
+        "Success",
+        "Ebay account successfully connected",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    }
   }
 }
