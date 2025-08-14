@@ -46,7 +46,7 @@ class EbayController extends GetxController {
           return "Please connect your Ebay account first";
         }
       } else {
-        return body["error"]["errors"][0]['longMessage'] ?? "Something went wrong";
+        return body["error"]["errors"][0]['longMessage'] ?? body["error"]["errors"][0]['message'] ?? "Something went wrong";
       }
     } catch (e) {
       return e.toString();

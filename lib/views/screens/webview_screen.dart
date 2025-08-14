@@ -23,8 +23,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onWebResourceError: (error) {
-          },
+          onWebResourceError: (error) {},
 
           onUrlChange: (change) {
             setState(() {
@@ -33,12 +32,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
           },
           onNavigationRequest: (NavigationRequest request) async {
             if (request.url.contains("callback?code=")) {
-              // Fetch the body of the callback page
+              // Fetch the body of the callback page  
               try {
                 final response = await http.get(Uri.parse(request.url));
                 if (!mounted) return NavigationDecision.prevent;
 
-                Navigator.pop(context, response.body); // send HTML body back
+                Navigator.pop(context, response.body);
               } catch (e) {
                 Navigator.pop(context, "Error: $e");
               }
@@ -61,6 +60,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             if (await _controller.canGoBack()) {
               _controller.goBack();
             } else {
+              _controller.clearCache();
               // ignore: use_build_context_synchronously
               Navigator.pop(context);
             }
