@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:snap2sell/controllers/ebay_controller.dart';
 import 'package:snap2sell/services/api_service.dart';
+import 'package:snap2sell/views/screens/camera_screen.dart';
 import 'package:snap2sell/views/screens/webview_screen.dart';
 
 class Home extends StatefulWidget {
@@ -154,17 +155,15 @@ class _HomeState extends State<Home> {
                       Expanded(
                         child: InkWell(
                           onTap: () async {
-                            for (int i = 0; i < 4; i++) {
-                              var temp = await ImagePicker().pickImage(
-                                source: ImageSource.camera,
-                              );
-                              if (temp != null) {
-                                images.add(File(temp.path));
-                              } else {
-                                break;
-                              }
-                            }
-                            setState(() {});
+                            Get.to(
+                              () => CameraScreen(
+                                onSubmit: (capturedPhotos) {
+                                  setState(() {
+                                    images.addAll(capturedPhotos);
+                                  });
+                                },
+                              ),
+                            );
                           },
                           child: Container(
                             height: 56,
