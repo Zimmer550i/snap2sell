@@ -218,8 +218,8 @@ class _CameraScreenState extends State<CameraScreen> {
                           child: GestureDetector(
                             onTap: () => _removeImage(index),
                             child: Container(
-                              height: 18,
-                              width: 18,
+                              height: 24,
+                              width: 24,
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.7),
                                 shape: BoxShape.circle,
@@ -227,7 +227,7 @@ class _CameraScreenState extends State<CameraScreen> {
                               child: Center(
                                 child: Icon(
                                   Icons.close_rounded,
-                                  size: 16,
+                                  size: 20,
                                   color: Colors.white,
                                 ),
                               ),

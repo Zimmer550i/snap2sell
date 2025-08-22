@@ -8,6 +8,7 @@ import 'package:snap2sell/services/shared_prefs_service.dart';
 
 class EbayController extends GetxController {
   final api = ApiService();
+  RxList<File> images = RxList.empty();
 
   RxBool isConnected = RxBool(false);
   RxBool isLoading = RxBool(false);
@@ -24,12 +25,12 @@ class EbayController extends GetxController {
     }
   }
 
-  Future<String> postToEbay(List<File> images, String? description) async {
+  Future<String> postToEbay(Map<String, dynamic> description) async {
     try {
       isLoading(true);
       final response = await api.post(
         "/post",
-        {"images": images, "description": description},
+        {"images": images, "data": description},
         isMultiPart: true,
         authReq: true,
       );
@@ -41,12 +42,33 @@ class EbayController extends GetxController {
       } else if (response.statusCode == 401) {
         final message = await refreshAuthToken();
         if (message == "success") {
-          return postToEbay(images, description);
+          return postToEbay(description);
         } else {
           return "Please connect your Ebay account first";
         }
       } else {
-        return body["error"]["errors"][0]['longMessage'] ?? body["error"]["errors"][0]['message'] ?? "Something went wrong";
+        return body['error'] ?? "Something went wrong";
+      }
+    } catch (e) {
+      return e.toString();
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<String> generateDraft(String description) async {
+    try {
+      isLoading(true);
+      final response = await api.get(
+        "/ai",
+        queryParams: {"description": description},
+        authReq: true,
+      );
+
+      if (response.statusCode == 200) {
+        return "success ${response.body}";
+      } else {
+        return "Error generating draft";
       }
     } catch (e) {
       return e.toString();
