@@ -47,7 +47,7 @@ class EbayController extends GetxController {
           return "Please connect your Ebay account first";
         }
       } else {
-        return body['error'] ?? "Something went wrong";
+        return body['error']['errors'][0]['message'] ?? body['error'] ?? "Something went wrong";
       }
     } catch (e) {
       return e.toString();
@@ -59,9 +59,10 @@ class EbayController extends GetxController {
   Future<String> generateDraft(String description) async {
     try {
       isLoading(true);
-      final response = await api.get(
+      final response = await api.post(
         "/ai",
-        queryParams: {"description": description},
+        {"images": images, "description": description},
+        isMultiPart: true,
         authReq: true,
       );
 
