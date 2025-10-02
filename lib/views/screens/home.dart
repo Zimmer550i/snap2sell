@@ -211,7 +211,9 @@ class _HomeState extends State<Home> {
                   GestureDetector(
                     onTap: () async {
                       final message = await ebay.generateDraft(
-                        detailsCtrl.text.trim(),
+                        detailsCtrl.text.isEmpty
+                            ? "Sell this"
+                            : detailsCtrl.text.trim(),
                       );
 
                       if (message.contains("success")) {
