@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:snap2sell/services/shared_prefs_service.dart';
 
 class ApiService {
-  final String devUrl = "https://plbck79v-9000.inc1.devtunnels.ms";
+  final String devUrl = "https://snap2sell-inky.vercel.app";
   final String prodUrl = "";
   static final String imgUrl = "";
   final bool inDevelopment = true;

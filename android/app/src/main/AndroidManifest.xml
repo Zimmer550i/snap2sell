@@ -18,7 +18,7 @@
 
     
     <application
-        android:label="snap2sell"
+        android:label="Snap2Sell"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">

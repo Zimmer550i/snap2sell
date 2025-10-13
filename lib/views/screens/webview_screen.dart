@@ -1,75 +1,80 @@
-import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:http/http.dart' as http;
+/*
+  THIS CODE HAS BEEN DEPRICATED!
+  ADD: WEBVIEW_FLUTTER PACKAGE INTO THE PUB.DEV TO MAKE IT AVAILBABLE
+*/
 
-class WebViewScreen extends StatefulWidget {
-  final String startUrl;
+// import 'package:flutter/material.dart';
+// import 'package:webview_flutter/webview_flutter.dart';
+// import 'package:http/http.dart' as http;
 
-  const WebViewScreen({super.key, required this.startUrl});
+// class WebViewScreen extends StatefulWidget {
+//   final String startUrl;
 
-  @override
-  State<WebViewScreen> createState() => _WebViewScreenState();
-}
+//   const WebViewScreen({super.key, required this.startUrl});
 
-class _WebViewScreenState extends State<WebViewScreen> {
-  late final WebViewController _controller;
-  String? url;
+//   @override
+//   State<WebViewScreen> createState() => _WebViewScreenState();
+// }
 
-  @override
-  void initState() {
-    super.initState();
+// class _WebViewScreenState extends State<WebViewScreen> {
+//   late final WebViewController _controller;
+//   String? url;
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onWebResourceError: (error) {},
+//   @override
+//   void initState() {
+//     super.initState();
 
-          onUrlChange: (change) {
-            setState(() {
-              url = change.url;
-            });
-          },
-          onNavigationRequest: (NavigationRequest request) async {
-            if (request.url.contains("callback?code=")) {
-              // Fetch the body of the callback page  
-              try {
-                final response = await http.get(Uri.parse(request.url));
-                if (!mounted) return NavigationDecision.prevent;
+//     _controller = WebViewController()
+//       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+//       ..setNavigationDelegate(
+//         NavigationDelegate(
+//           onWebResourceError: (error) {},
 
-                Navigator.pop(context, response.body);
-              } catch (e) {
-                Navigator.pop(context, "Error: $e");
-              }
+//           onUrlChange: (change) {
+//             setState(() {
+//               url = change.url;
+//             });
+//           },
+//           onNavigationRequest: (NavigationRequest request) async {
+//             if (request.url.contains("callback?code=")) {
+//               // Fetch the body of the callback page  
+//               try {
+//                 final response = await http.get(Uri.parse(request.url));
+//                 if (!mounted) return NavigationDecision.prevent;
 
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.startUrl));
-  }
+//                 Navigator.pop(context, response.body);
+//               } catch (e) {
+//                 Navigator.pop(context, "Error: $e");
+//               }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: GestureDetector(
-          onTap: () async {
-            if (await _controller.canGoBack()) {
-              _controller.goBack();
-            } else {
-              _controller.clearCache();
-              // ignore: use_build_context_synchronously
-              Navigator.pop(context);
-            }
-          },
-          child: Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(url ?? "Loading...", style: TextStyle(fontSize: 16)),
-      ),
-      body: WebViewWidget(controller: _controller),
-    );
-  }
-}
+//               return NavigationDecision.prevent;
+//             }
+//             return NavigationDecision.navigate;
+//           },
+//         ),
+//       )
+//       ..loadRequest(Uri.parse(widget.startUrl));
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: GestureDetector(
+//           onTap: () async {
+//             if (await _controller.canGoBack()) {
+//               _controller.goBack();
+//             } else {
+//               _controller.clearCache();
+//               // ignore: use_build_context_synchronously
+//               Navigator.pop(context);
+//             }
+//           },
+//           child: Icon(Icons.arrow_back_rounded),
+//         ),
+//         title: Text(url ?? "Loading...", style: TextStyle(fontSize: 16)),
+//       ),
+//       body: WebViewWidget(controller: _controller),
+//     );
+//   }
+// }
