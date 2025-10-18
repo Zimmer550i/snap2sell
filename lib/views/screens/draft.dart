@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:snap2sell/controllers/ebay_controller.dart';
 import 'package:snap2sell/services/api_service.dart';
-import 'package:snap2sell/services/shared_prefs_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uuid/uuid.dart';
 
 class Draft extends StatefulWidget {
   final Map<String, dynamic> json;
@@ -16,12 +13,10 @@ class Draft extends StatefulWidget {
   State<Draft> createState() => _DraftState();
 }
 
-class _DraftState extends State<Draft> with WidgetsBindingObserver {
+class _DraftState extends State<Draft>{
   final ebay = Get.find<EbayController>();
   List<TextEditingController?> controllers = [];
-  final uuid = Uuid();
 
-  String? uniqueId;
   List<String> titles = [];
   Map<String, String> titleKeys = {};
   Map<String, dynamic> json = {};
@@ -29,29 +24,13 @@ class _DraftState extends State<Draft> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     ebay.checkPrevLogin();
     json = widget.json;
     getFields(json);
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      connect(context);
-    } else if (state == AppLifecycleState.hidden) {
-      debugPrint("App hidden");
-    } else if (state == AppLifecycleState.paused) {
-      debugPrint("App paused");
-    } else if (state == AppLifecycleState.inactive) {
-      debugPrint("App inactive");
-    }
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     for (var controller in controllers) {
       controller?.dispose();
     }
@@ -305,54 +284,13 @@ class _DraftState extends State<Draft> with WidgetsBindingObserver {
     );
   }
 
-  Future<String> getUniqueId() async {
-    uniqueId = await SharedPrefsService.get("uniqueId");
-    if (uniqueId == null) {
-      uniqueId = uuid.v4();
-      SharedPrefsService.set("uniqueId", uniqueId);
-    }
-
-    return uniqueId!;
-  }
-
   Future<void> launchEbayAuth() async {
     final Uri url = Uri.parse(
-      "${ApiService().baseUrl}/connect?state=${await getUniqueId()}",
+      "${ApiService().baseUrl}/connect",
     );
 
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
-    }
-  }
-
-  void connect(BuildContext context) async {
-    final response = await ApiService().get(
-      "/retrieve-token/${await getUniqueId()}",
-    );
-
-    final body = response.body;
-    var data = {};
-
-    try {
-      data = jsonDecode(body);
-    } catch (e) {
-      return;
-    }
-
-    if (data["access_token"] != null) {
-      ApiService().setToken(data['access_token']);
-    }
-    if (data["refresh_token"] != null) {
-      ApiService().setToken(data['refresh_token'], key: "refresh_token");
-    }
-
-    if (await ebay.checkPrevLogin()) {
-      Get.snackbar(
-        "Success",
-        "Ebay account successfully connected",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
     }
   }
 }
