@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -13,7 +15,7 @@ class Draft extends StatefulWidget {
   State<Draft> createState() => _DraftState();
 }
 
-class _DraftState extends State<Draft>{
+class _DraftState extends State<Draft> {
   final ebay = Get.find<EbayController>();
   List<TextEditingController?> controllers = [];
 
@@ -85,10 +87,50 @@ class _DraftState extends State<Draft>{
       if (titleKeys[titles[i]] == null) {
         debugPrint("<<<!>>> ${titles[i]} not found!");
       }
-      newJson[titleKeys[titles[i]]!] = controllers[i]!.text.trim();
+
+      final value = controllers[i]!.text.trim();
+
+      newJson[titleKeys[titles[i]]!] = titleKeys[titles[i]]! == "categoryId"
+          ? value
+          : convertItems(value);
     }
 
     return newJson;
+  }
+
+  dynamic convertItems(String raw) {
+    raw = raw.trim();
+
+    if (int.tryParse(raw) != null) return int.parse(raw);
+    if (double.tryParse(raw) != null) return double.parse(raw);
+    if (raw == "true") return true;
+    if (raw == "false") return false;
+
+    if (raw.contains("[")) {
+      String step1 = raw.replaceAllMapped(
+        RegExp(r'(\w+):'),
+        (match) => '"${match[1]}":',
+      );
+      String step2 = step1.replaceAllMapped(
+        RegExp(r': ([^,\}\]]+)(,|\}|\])'), // Match everything until , } or ]
+        (match) {
+          String val = match[1]!.trim();
+          // Leave booleans and numbers as-is
+          if (val == "true" || val == "false") return ': $val${match[2]}';
+          if (double.tryParse(val) != null) return ': $val${match[2]}';
+          // Otherwise quote it
+          return ': "${val.replaceAll('"', r'\"')}"${match[2]}';
+        },
+      );
+
+      List<Map<String, dynamic>> listOfMaps = jsonDecode(
+        step2,
+      ).cast<Map<String, dynamic>>();
+
+      return listOfMaps;
+    }
+
+    return raw;
   }
 
   Map<String, dynamic> updateNestedJson(
@@ -98,6 +140,8 @@ class _DraftState extends State<Draft>{
     original.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         original[key] = updateNestedJson(value, updates);
+      } else if (value is List) {
+        original[key] = value;
       }
     });
 
@@ -230,9 +274,10 @@ class _DraftState extends State<Draft>{
               GestureDetector(
                 onTap: () async {
                   json = updateNestedJson(json, generateNewJson());
-                  // ApiService().setToken(
-                  //   "v^1.1#i^1#r^0#p^3#I^3#f^0#t^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",
-                  // );
+                  ApiService().setToken(
+                    "v^1.1#i^1#r^0#I^3#p^3#f^0#t^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",
+                  );
+                  // final message = "failed";
                   final message = await ebay.postToEbay(json);
 
                   if (message == "success") {
@@ -285,9 +330,7 @@ class _DraftState extends State<Draft>{
   }
 
   Future<void> launchEbayAuth() async {
-    final Uri url = Uri.parse(
-      "${ApiService().baseUrl}/connect",
-    );
+    final Uri url = Uri.parse("${ApiService().baseUrl}/connect");
 
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
